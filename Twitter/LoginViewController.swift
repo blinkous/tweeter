@@ -22,6 +22,10 @@ class LoginViewController: UIViewController {
         // Calling the API
         TwitterAPICaller.client?.login(url: urlString, success: {
             // on login success, present homeTableVC
+            
+            // To allow user to stay logged in, we have to commit the login to memory via creating a user default
+            UserDefaults.standard.set(true, forKey: "userLoggedIn")
+            
             // string: loginToHome is the name of our segue btw login and the next view
             self.performSegue(withIdentifier: "loginToHome", sender: self)
         }, failure: { (Error) in
