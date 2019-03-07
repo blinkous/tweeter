@@ -9,22 +9,30 @@
 import UIKit
 
 class LoginViewController: UIViewController {
-
+    @IBOutlet weak var loginButton: UIButton!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+        loginButton.layer.cornerRadius = 20
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    // Configure how to nav from here to the next view controller
+    @IBAction func onTapLogin(_ sender: Any) {
+        let urlString = "https://api.twitter.com/oauth/request_token"
+        // Calling the API
+        TwitterAPICaller.client?.login(url: urlString, success: {
+            // on login success, present homeTableVC
+            // string: loginToHome is the name of our segue btw login and the next view
+            self.performSegue(withIdentifier: "loginToHome", sender: self)
+        }, failure: { (Error) in
+            // tell user that error has occurred
+            print("Error, couldn't log in.")
+            // set up an alert controller
+            let title = "Error"
+            let message = "An error has occured. Unable to log-in."
+            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler: nil))
+            self.present(alert, animated: true, completion: nil)
+        })
     }
-    */
-
 }
