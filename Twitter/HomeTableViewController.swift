@@ -15,20 +15,30 @@ class HomeTableViewController: UITableViewController {
     var tweetArray = [NSDictionary]()
     var numberOfTweets: Int!
     
+    // Adding the refresh control
+    let myRefreshControl = UIRefreshControl()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         loadTweets()
+        
+        // Refreshes the tweets
+        myRefreshControl.addTarget(self, action: #selector(loadTweets), for: .valueChanged)
+        tableView.refreshControl = myRefreshControl
     }
     
     // Loading the tweets
-    func loadTweets(){
+    @objc func loadTweets(){
+        
+        numberOfTweets = 20
+        
         // Call the API
         let myUrl = "https://api.twitter.com/1.1/statuses/home_timeline.json"
         
-        // Only pull 10 tweets
-        let myParam = ["count": 10]
+        // Only pull numberOfTweets tweets
+        let myParam = ["count": numberOfTweets]
         
-        TwitterAPICaller.client?.getDictionariesRequest(url: myUrl, parameters: myParam, success: { (tweets: [NSDictionary]) in
+        TwitterAPICaller.client?.getDictionariesRequest(url: myUrl, parameters: myParam as [String : Any], success: { (tweets: [NSDictionary]) in
             
             // Clean the array before we add the tweets to it, we don't want the old list
             self.tweetArray.removeAll()
@@ -39,10 +49,46 @@ class HomeTableViewController: UITableViewController {
             }
             
             self.tableView.reloadData()
+            
+            //Stop refreshing: makes sure the refresh button doesn't stay forever
+            self.myRefreshControl.endRefreshing()
+            
         }, failure: { (Error) in
             print("Could not retrieve tweets! oh noooo!!!")
         })
     }
+    
+    // Implement the inifinite scroll: Load the older tweets
+    func loadMoreTweets(){
+        let myUrl = "https://api.twitter.com/1.1/statuses/home_timeline.json"
+        // Increasing num of tweets
+        numberOfTweets += 20
+        
+        let myParam = ["count": numberOfTweets]
+        
+        TwitterAPICaller.client?.getDictionariesRequest(url: myUrl, parameters: myParam as [String : Any], success: { (tweets: [NSDictionary]) in
+            
+            // Clean the array before we add the tweets to it, we don't want the old list
+            self.tweetArray.removeAll()
+            
+            // Add the tweets to our local array
+            for tweet in tweets {
+                self.tweetArray.append(tweet)
+            }
+            
+            self.tableView.reloadData()
+            
+        }, failure: { (Error) in
+            print("Could not retrieve tweets! oh noooo!!!")
+        })
+    }
+    
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if indexPath.row + 1 == tweetArray.count {
+            loadMoreTweets()
+        }
+    }
+    
     
     @IBAction func onLogout(_ sender: Any) {
         TwitterAPICaller.client?.logout()
