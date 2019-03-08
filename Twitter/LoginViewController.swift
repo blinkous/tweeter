@@ -16,6 +16,14 @@ class LoginViewController: UIViewController {
         loginButton.layer.cornerRadius = 20
     }
     
+    // We want see if the user has logged in, if they have, don't ask them to log in again, just go straight to the home screen
+    override func viewDidAppear(_ animated: Bool) {
+        if UserDefaults.standard.bool(forKey: "userLoggedIn") == true {
+            // Don't ask user to log in again, perform the segue loginToHome
+            self.performSegue(withIdentifier: "loginToHome", sender: self)
+        }
+    }
+    
     // Configure how to nav from here to the next view controller
     @IBAction func onTapLogin(_ sender: Any) {
         let urlString = "https://api.twitter.com/oauth/request_token"
@@ -24,6 +32,7 @@ class LoginViewController: UIViewController {
             // on login success, present homeTableVC
             
             // To allow user to stay logged in, we have to commit the login to memory via creating a user default
+            // When the user logs in, it should check this variable "userLoggedIn"
             UserDefaults.standard.set(true, forKey: "userLoggedIn")
             
             // string: loginToHome is the name of our segue btw login and the next view
